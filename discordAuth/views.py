@@ -1,6 +1,8 @@
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
 import requests
+from django.contrib.auth import authenticate, login
+import json
 
 # Create your views here.
 
@@ -17,8 +19,9 @@ def discord_login(request: HttpRequest):
 
 def discord_login_redirect(request: HttpRequest):
     code = request.GET.get('code')
-    user, guilds = exchange_code(code)
-    return JsonResponse({"user": user, "guilds" : guilds})
+    user, guilds= exchange_code(code)
+    authenticate(request, user=user, guilds=guilds)
+    return JsonResponse({"user": user, "guilds": guilds})
 
 
 def exchange_code(code):
@@ -41,9 +44,15 @@ def exchange_code(code):
     responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
         'Authorization': 'Bearer %s' % access_token
     })
-    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
+    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds?id', headers={
         'Authorization': 'Bearer %s' % access_token
     })
     user = responseUser.json()
-    guilds = responseGuild.json()
+    guilds_Json = responseGuild.json()
+    data = []
+    for guild in guilds_Json:
+        guild_dico = {"id" : guild['id'], "name" : guild['name'], "icon" : guild['icon'], "owner" : guild['owner']}
+        data.append(guild_dico)
+    guilds = json.dumps(data)
+    print(user, guilds)
     return user, guilds
