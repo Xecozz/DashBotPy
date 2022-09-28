@@ -11,3 +11,9 @@ class DiscordAuthentificationBackend(BaseBackend):
             new_user = DiscordUser.objects.create_new_discord_user(user, guilds)
             print(user)
         return find_user
+
+    def get_user(self, user_id):
+        try:
+            return DiscordUser.objects.get(pk=user_id)
+        except DiscordUser.DoesNotExist:
+            return None

@@ -1,5 +1,12 @@
+import datetime
+
 from django.db import models
 from .managers import DiscordUserOauth2Manager
+import locale
+
+locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+
 # Create your models here.
 
 class DiscordUser(models.Model):
@@ -15,3 +22,9 @@ class DiscordUser(models.Model):
     last_login = models.DateTimeField(null=True)
     guilds = models.JSONField(null=True)
 
+    def is_authenticated(self, request):
+        return True
+
+    def __str__(self):
+        date = self.last_login.strftime('%A, %d %b %Y %H:%M:%S')
+        return f"{self.discord_tag}: {self.id} [{date}]"

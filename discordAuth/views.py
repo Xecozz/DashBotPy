@@ -3,15 +3,28 @@ from django.shortcuts import render, redirect
 import requests
 from django.contrib.auth import authenticate, login
 import json
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 
 redirect_url_discord = "https://discord.com/api/oauth2/authorize?client_id=1023285147681960069&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20guilds"
 
 
-def home(request: HttpRequest) -> JsonResponse:
-    return JsonResponse({"msg": "hello"})
 
+@login_required(login_url="/oauth2/login")
+def get_authenticated_user(request: HttpRequest):
+    user = request.user
+    return ({
+        "id": user.id,
+        "discord_tag": user.discord_tag,
+        "avatar": user.avatar,
+        "public_flags": user.public_flags,
+        "flags": user.flags,
+        "locale": user.locale,
+        "mfa_enabled": user.mfa_enabled,
+        "guilds": user.guilds,
+    })
 
 def discord_login(request: HttpRequest):
     return redirect(redirect_url_discord)
@@ -19,9 +32,12 @@ def discord_login(request: HttpRequest):
 
 def discord_login_redirect(request: HttpRequest):
     code = request.GET.get('code')
-    user, guilds= exchange_code(code)
-    authenticate(request, user=user, guilds=guilds)
-    return JsonResponse({"user": user, "guilds": guilds})
+    user, guilds = exchange_code(code)
+    discord_user = authenticate(request, user=user, guilds=guilds)
+    discord_user = list(discord_user).pop()
+    print(discord_user)
+    login(request, discord_user)
+    return redirect('/index')
 
 
 def exchange_code(code):
@@ -44,15 +60,14 @@ def exchange_code(code):
     responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
         'Authorization': 'Bearer %s' % access_token
     })
-    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds?id', headers={
+    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
         'Authorization': 'Bearer %s' % access_token
     })
     user = responseUser.json()
     guilds_Json = responseGuild.json()
     data = []
     for guild in guilds_Json:
-        guild_dico = {"id" : guild['id'], "name" : guild['name'], "icon" : guild['icon'], "owner" : guild['owner']}
+        guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
         data.append(guild_dico)
     guilds = json.dumps(data)
-    print(user, guilds)
     return user, guilds
