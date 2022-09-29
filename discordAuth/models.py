@@ -14,7 +14,7 @@ class DiscordUser(models.Model):
 
     id = models.BigIntegerField(primary_key=True)
     discord_tag = models.CharField(max_length=100)
-    avatar = models.CharField(max_length=100)
+    avatar = models.CharField(max_length=100, null=True)
     public_flags = models.IntegerField()
     flags = models.IntegerField()
     locale = models.CharField(max_length=100)
@@ -26,5 +26,7 @@ class DiscordUser(models.Model):
         return True
 
     def __str__(self):
-        date = self.last_login.strftime('%A, %d %b %Y %H:%M:%S')
-        return f"{self.discord_tag}: {self.id} [{date}]"
+        if  self.last_login != None:
+            date = self.last_login.strftime('%A, %d %b %Y %H:%M:%S')
+            return f"{self.discord_tag}: {self.id} [{date}]"
+        return f"{self.discord_tag}: {self.id}"

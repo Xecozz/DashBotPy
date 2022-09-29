@@ -28,7 +28,7 @@ ALLOWED_HOSTS = []
 
 AUTHENTICATION_BACKENDS = [
     'discordAuth.auth.DiscordAuthentificationBackend',
-
+    'django.contrib.auth.backends.ModelBackend'
 ]
 
 # Application definition

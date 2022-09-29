@@ -13,6 +13,7 @@ class DiscordUserOauth2Manager(models.UserManager):
             locale=user['locale'],
             mfa_enabled=user['mfa_enabled'],
             discord_tag=discord_tag,
-            guilds=guilds
+            guilds= guilds
         )
         return new_user
+

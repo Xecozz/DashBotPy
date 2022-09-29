@@ -17,13 +17,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from discordAuth import views
-from Dashboard.views import dashboard
+from Dashboard.views import index
 
 from src import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('index/', dashboard, name='dashboard'),
+    path('admin/', views.logout),
+    path('admin/connexion', admin.site.urls),
+    path('index/', index, name='index'),
 
     #tailwind
     path("__reload__/", include("django_browser_reload.urls")),

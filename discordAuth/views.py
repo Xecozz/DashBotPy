@@ -1,16 +1,24 @@
-from django.http import JsonResponse, HttpResponse, HttpRequest
-from django.shortcuts import render, redirect
+#basic
+from django.http import HttpRequest
+from django.shortcuts import redirect
+
+#oaut2 discord
 import requests
 from django.contrib.auth import authenticate, login
 import json
+
+#backend authentification
 from django.contrib.auth.decorators import login_required
+
+#admin
+from django.utils import timezone
+from django.contrib.sessions.models import Session
 
 
 # Create your views here.
 
+#redirect oauth2
 redirect_url_discord = "https://discord.com/api/oauth2/authorize?client_id=1023285147681960069&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20guilds"
-
-
 
 @login_required(login_url="/oauth2/login")
 def get_authenticated_user(request: HttpRequest):
@@ -26,20 +34,23 @@ def get_authenticated_user(request: HttpRequest):
         "guilds": user.guilds,
     })
 
+#redirect to discord url auth
 def discord_login(request: HttpRequest):
     return redirect(redirect_url_discord)
 
 
+#auth and login
 def discord_login_redirect(request: HttpRequest):
     code = request.GET.get('code')
     user, guilds = exchange_code(code)
     discord_user = authenticate(request, user=user, guilds=guilds)
-    discord_user = list(discord_user).pop()
     print(discord_user)
-    login(request, discord_user)
+    discord_user = list(discord_user).pop()
+    login(request, discord_user, backend="discordAuth.auth.DiscordAuthentificationBackend")
     return redirect('/index')
 
 
+#change code with token
 def exchange_code(code):
     data = {
         "client_id": "1023285147681960069",
@@ -65,9 +76,21 @@ def exchange_code(code):
     })
     user = responseUser.json()
     guilds_Json = responseGuild.json()
-    data = []
+    guilds = []
     for guild in guilds_Json:
         guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
-        data.append(guild_dico)
-    guilds = json.dumps(data)
+        guilds.append(guild_dico)
     return user, guilds
+
+
+
+#Admin Session
+def delete_all_unexpired_sessions_for_user(user):
+    unexpired_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    [
+        session.delete() for session in unexpired_sessions
+        if str(user.pk) == session.get_decoded().get('_auth_user_id')
+    ]
+def logout(request):
+    delete_all_unexpired_sessions_for_user(request.user)
+    return redirect("/admin/connexion")
