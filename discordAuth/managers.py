@@ -1,8 +1,7 @@
 from django.contrib.auth import models
 
-
 class DiscordUserOauth2Manager(models.UserManager):
-    def create_new_discord_user(self, user, guilds):
+    def create_new_discord_user(self, user):
         print('Inside Discord User Manager')
         discord_tag = '%s#%s' % (user['username'], user['discriminator'])
         new_user = self.create(
@@ -13,7 +12,10 @@ class DiscordUserOauth2Manager(models.UserManager):
             locale=user['locale'],
             mfa_enabled=user['mfa_enabled'],
             discord_tag=discord_tag,
-            guilds= guilds
+            guilds=user['guilds']
         )
+
         return new_user
+
+
 
