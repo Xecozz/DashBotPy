@@ -17,25 +17,28 @@
                             <div class="flex flex-row items-center">
                                 <div class="flex-shrink pr-4">
                                     {% if guild.icon %}
-                                    <div class="rounded-md p-3"><img
-                                            src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png"
-                                            class="p-1 bg-white border-none rounded max-w-sm"
-                                            alt="..."
-                                    /></div>
+                                        <div class="rounded-md p-3"><img
+                                                src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png"
+                                                class="border-none rounded-md max-w-sm"
+                                                alt="..."
+                                        /></div>
                                     {% else %}
                                         <div class="rounded-md p-3"><img
-                                            src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png"
-                                            class="p-1 bg-white border-none rounded max-w-sm"
-                                            alt="..."
+                                                src="./../../../media/icon_logo.png"
+                                                class="border-none rounded-md max-w-sm"
+                                                alt="..."
                                         /></div>
                                     {% endif %}
 
                                 </div>
-                                <div class="flex-1 text-right md:text-center">
-                                    <h5 class="font-bold uppercase text-gray-400">{{ guild.name }}</h5>
-                                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
-                                        Manage
-                                    </button>
+                                <div class="flex-1 text-center md:text-center">
+                                    <h5 class="font-bold uppercase text-gray-400 mb-2">{{ guild.name }}</h5>
+                                    <a href="/dashboard/{{ guild.id }}">
+                                        <button href=""
+                                                class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full ">
+                                            Manage
+                                        </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>

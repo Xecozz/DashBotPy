@@ -2,7 +2,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
 from discordAuth.main import check_update
-from discordAuth.views import get_authenticated_user
+from discordAuth.views import get_authenticated_user, delete_all_unexpired_sessions_for_user
 
 
 def dashboard(request, slug):
@@ -15,9 +15,13 @@ def dashboard(request, slug):
 
 def index(request):
     user = get_authenticated_user(request)
-    print(user)
+
     if type(user) == HttpResponseRedirect:
         return redirect('/oauth2/login')
-    check_update(user['id'])
+    user = check_update(user)
 
     return render(request, 'Dashboard/index.html', context={"user": user, "guilds": user['guilds']})
+
+def logout_Discord_user(request):
+    delete_all_unexpired_sessions_for_user(request.user)
+    return redirect("")

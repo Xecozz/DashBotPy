@@ -1,5 +1,6 @@
 from django.contrib.auth import models
 
+
 class DiscordUserOauth2Manager(models.UserManager):
     def create_new_discord_user(self, user):
         print('Inside Discord User Manager')
@@ -17,5 +18,10 @@ class DiscordUserOauth2Manager(models.UserManager):
 
         return new_user
 
+    def create_token_refresh(self, user, token):
+        new_token = self.create(
+            id=user['id'],
+            token=token
+        )
 
-
+        return new_token

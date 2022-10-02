@@ -1,6 +1,8 @@
 import datetime
 
 from django.db import models
+from django.urls import reverse
+
 from .managers import DiscordUserOauth2Manager
 import locale
 
@@ -30,3 +32,8 @@ class DiscordUser(models.Model):
             date = self.last_login.strftime('%A, %d %b %Y %H:%M:%S')
             return f"{self.discord_tag}: {self.id} [{date}]"
         return f"{self.discord_tag}: {self.id}"
+
+class RefreshToken(models.Model):
+    objects = DiscordUserOauth2Manager()
+    id = models.BigIntegerField(primary_key=True)
+    token = models.TextField()
