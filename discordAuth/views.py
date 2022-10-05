@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 
-from discordAuth.models import RefreshToken
+from discordAuth.models import RefreshToken, DiscordUser
 
 # Create your views here.
 
@@ -31,8 +31,6 @@ def get_authenticated_user(request: HttpRequest) -> object:
         "id": user.id,
         "discord_tag": user.discord_tag,
         "avatar": user.avatar,
-        "public_flags": user.public_flags,
-        "flags": user.flags,
         "locale": user.locale,
         "mfa_enabled": user.mfa_enabled,
         "guilds": user.guilds,
@@ -53,6 +51,8 @@ def discord_login_redirect(request: HttpRequest):
     find_token_len = RefreshToken.objects.filter(id=user['id'])
     if len(find_token_len) == 0:
         RefreshToken.objects.create_token_refresh(user, refresh_token)
+    else:
+        DiscordVerification.check_refresh_token(user, refresh_token)
 
     discord_user = authenticate(request, user=user)
     discord_user = list(discord_user).pop()
@@ -76,6 +76,7 @@ def exchange_code(code: object) -> object:
     response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
     credentials = response.json()
+    print(credentials)
 
     refresh_token = credentials['refresh_token']
     access_token = credentials['access_token']
@@ -104,7 +105,6 @@ def exchange_code(code: object) -> object:
     return user, refresh_token
 
 def exchange_refresh_token(token):
-    print(token)
     data = {
         "client_id": "1023285147681960069",
         "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
@@ -118,8 +118,11 @@ def exchange_refresh_token(token):
     response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
     credentials = response.json()
-    print("response : ", credentials)
+    print(credentials)
+    if 'error' in credentials.keys():
+        return None, token
     refresh_token = credentials['refresh_token']
+
 
     access_token = credentials['access_token']
 
