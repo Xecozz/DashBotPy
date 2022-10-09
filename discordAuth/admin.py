@@ -1,5 +1,5 @@
 from django.contrib import admin
 from discordAuth.models import DiscordUser
 
-# Register your models here.
+#add DiscordUser infos to panel admin
 admin.site.register(DiscordUser)

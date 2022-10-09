@@ -1,10 +1,6 @@
-import datetime
-import time
-
 from django.contrib.auth.backends import BaseBackend
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from discordAuth.modules import getDifference
 
 from .models import DiscordUser, RefreshToken
 
@@ -33,25 +29,11 @@ class DiscordVerification:
     @staticmethod
     def check_refresh_token(user, token):
         find_token = get_object_or_404(RefreshToken)
-        last_date = find_token.last_date.replace(tzinfo=None)
-        now_date = datetime.datetime.now().replace(tzinfo=None)
-        print(last_date, now_date)
-
-        diff = getDifference(last_date, now_date, interval='secs')
-
-        #diff = time.mktime(now_date.timetuple()) - time.mktime(last_date.timetuple())
-        print(diff)
-        if diff < 5:
-            return
-
-        find_token.last_date = now_date
-        find_token.save()
-
         if find_token == Http404:
             RefreshToken.objects.create_token_refresh(user, token)
         else:
             if find_token.token != token:
-                find_token.token = token
+                find_token.token = str(token)
                 find_token.save()
 
         return find_token
@@ -66,6 +48,10 @@ class DiscordVerification:
             "id": user['id'],
             "discord_tag": discord_tag,
             "avatar": user['avatar'],
+            "locale" : user['locale'],
+            "premium_type" : user['premium_type'],
+            "username" : user['username'],
+            "tag" : user['discriminator'],
             "mfa_enabled": user['mfa_enabled'],
             "guilds": user['guilds']
         }

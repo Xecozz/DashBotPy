@@ -1,6 +1,6 @@
 # basic
-from django.http import HttpRequest
-from django.shortcuts import redirect
+from django.http import HttpRequest, Http404, HttpResponseRedirect
+from django.shortcuts import redirect, get_object_or_404
 
 # oaut2 discord
 import requests
@@ -15,26 +15,28 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 
-from discordAuth.models import RefreshToken, DiscordUser
+from discordAuth.models import RefreshToken
 
-# Create your views here.
 
 # redirect oauth2
 redirect_url_discord = "https://discord.com/api/oauth2/authorize?client_id=1023285147681960069&redirect_uri=http%3A" \
                        "%2F%2F127.0.0.1%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20guilds "
 
 
+#authentificate user
 @login_required(login_url="/oauth2/login")
 def get_authenticated_user(request: HttpRequest) -> object:
     user = request.user
+
     return ({
-        "id": user.id,
-        "discord_tag": user.discord_tag,
-        "avatar": user.avatar,
-        "locale": user.locale,
-        "mfa_enabled": user.mfa_enabled,
-        "guilds": user.guilds,
-    })
+            "id": user.id,
+            "discord_tag": user.discord_tag,
+            "avatar": user.avatar,
+            "locale": user.locale,
+            "mfa_enabled": user.mfa_enabled,
+            "guilds": user.guilds,
+        })
+
 
 
 # redirect to discord url auth
@@ -47,16 +49,23 @@ def discord_login_redirect(request: HttpRequest):
     code = request.GET.get('code')
     user, refresh_token = exchange_code(code)
 
-    #check bdd if refresh token
+    # check bdd if refresh token
     find_token_len = RefreshToken.objects.filter(id=user['id'])
     if len(find_token_len) == 0:
+        #create refreshToken
         RefreshToken.objects.create_token_refresh(user, refresh_token)
     else:
+        #check is equal
         DiscordVerification.check_refresh_token(user, refresh_token)
 
+    #autenticate
     discord_user = authenticate(request, user=user)
     discord_user = list(discord_user).pop()
+
+    #login
     login(request, discord_user, backend="discordAuth.auth.DiscordAuthentificationBackend")
+
+    #redirect dashboard page
     return redirect('/dashboard/')
 
 
@@ -76,7 +85,6 @@ def exchange_code(code: object) -> object:
     response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
     credentials = response.json()
-    print(credentials)
 
     refresh_token = credentials['refresh_token']
     access_token = credentials['access_token']
@@ -92,8 +100,6 @@ def exchange_code(code: object) -> object:
 
     guilds_Json = responseGuild.json()
 
-    print(user, guilds_Json)
-
     guilds = []
     for guild in guilds_Json:
         if guild['owner']:
@@ -104,6 +110,7 @@ def exchange_code(code: object) -> object:
 
     return user, refresh_token
 
+#change refresh token
 def exchange_refresh_token(token):
     data = {
         "client_id": "1023285147681960069",
@@ -118,11 +125,9 @@ def exchange_refresh_token(token):
     response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
     credentials = response.json()
-    print(credentials)
     if 'error' in credentials.keys():
         return None, token
     refresh_token = credentials['refresh_token']
-
 
     access_token = credentials['access_token']
 
@@ -145,6 +150,15 @@ def exchange_refresh_token(token):
 
     user['guilds'] = guilds
 
+    find_token = get_object_or_404(RefreshToken)
+    if find_token == Http404:
+        RefreshToken.objects.create_token_refresh(user, token)
+    else:
+        if find_token.token != token:
+            print("changement effectué")
+            find_token.token = token
+            find_token.save()
+
     return user, refresh_token
 
 
@@ -157,6 +171,7 @@ def delete_all_unexpired_sessions_for_user(user):
     ]
 
 
+#logout session
 def logout(request):
     delete_all_unexpired_sessions_for_user(request.user)
     return redirect("/admin/connexion")
