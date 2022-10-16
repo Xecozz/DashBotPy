@@ -16,7 +16,7 @@ class DiscordUser(models.Model):
     locale = models.CharField(max_length=100)
     username = models.CharField(max_length=100, null=True)
     tag = models.CharField(max_length=100, null=True)
-    premium_type = models.IntegerField(max_length=100, null=True)
+    premium_type = models.IntegerField(null=True)
     mfa_enabled = models.BooleanField()
     last_login = models.DateTimeField(null=True)
     guilds = models.JSONField(null=True)

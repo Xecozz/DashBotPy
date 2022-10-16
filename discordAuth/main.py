@@ -1,12 +1,13 @@
+import logging
 from datetime import datetime
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 from discordAuth.models import RefreshToken
-from .modules import getDifference
-from .views import exchange_refresh_token
-from discordAuth.auth import DiscordVerification
+from packages.modules import getDifference
+from .views import ExchangeDiscord
+from discordAuth.views import DiscordVerification
 
 
 #check refreshToken and discord User in db
@@ -25,9 +26,12 @@ def check_update(user):
     #if refresh page < 3s return
     if diff > 3:
         if find_token != Http404:
-            new_user, refresh_token = exchange_refresh_token(find_token.token)
+            new_user, refresh_token = ExchangeDiscord.exchange_refresh_token(find_token.token)
             DiscordVerification.check_refresh_token(user, refresh_token)
             user = new_user
-            print(user)
+
 
         return DiscordVerification.check_discord_user(user)
+
+    logging.warning(f"{user['username']} ({user['id']}) NOT check Update !!")
+    return user, False

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from django.contrib.auth import models
@@ -6,7 +7,7 @@ from django.contrib.auth import models
 #backend system
 class DiscordUserOauth2Manager(models.UserManager):
     def create_new_discord_user(self, user):
-        print('Inside Discord User Manager')
+        logging.info(f"{user['username']} ({user['id']}) : Inside Discord User Manager")
         discord_tag = '%s#%s' % (user['username'], user['discriminator'])
         new_user = self.create(
             id=user['id'],
@@ -29,5 +30,6 @@ class DiscordUserOauth2Manager(models.UserManager):
             last_date=datetime.now()
 
         )
+        logging.info(f"{user['username']} ({user['id']}) : Create refresh Token")
 
         return new_token

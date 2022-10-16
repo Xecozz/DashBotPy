@@ -1,12 +1,13 @@
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - [%(pathname)s:%(lineno)d] - %(message)s', level=logging.INFO)
+
 # basic
-from django.http import HttpRequest, Http404, HttpResponseRedirect
+from django.http import HttpRequest, Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 
 # oaut2 discord
 import requests
 from django.contrib.auth import authenticate, login
-
-from discordAuth.auth import DiscordVerification
 
 # backend authentification
 from django.contrib.auth.decorators import login_required
@@ -15,28 +16,29 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 
-from discordAuth.models import RefreshToken
-
+from discordAuth.models import RefreshToken, DiscordUser
 
 # redirect oauth2
 redirect_url_discord = "https://discord.com/api/oauth2/authorize?client_id=1023285147681960069&redirect_uri=http%3A" \
                        "%2F%2F127.0.0.1%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify%20guilds "
 
 
-#authentificate user
+# authentificate user
 @login_required(login_url="/oauth2/login")
-def get_authenticated_user(request: HttpRequest) -> object:
+def get_authenticated_user(request: HttpRequest):
     user = request.user
 
     return ({
-            "id": user.id,
-            "discord_tag": user.discord_tag,
-            "avatar": user.avatar,
-            "locale": user.locale,
-            "mfa_enabled": user.mfa_enabled,
-            "guilds": user.guilds,
-        })
-
+        "id": user.id,
+        "discord_tag": user.discord_tag,
+        "username": user.username,
+        "tag": user.tag,
+        "premium_type": user.premium_type,
+        "avatar": user.avatar,
+        "locale": user.locale,
+        "mfa_enabled": user.mfa_enabled,
+        "guilds": user.guilds,
+    })
 
 
 # redirect to discord url auth
@@ -47,119 +49,185 @@ def discord_login(request: HttpRequest):
 # auth and login
 def discord_login_redirect(request: HttpRequest):
     code = request.GET.get('code')
-    user, refresh_token = exchange_code(code)
+    user, refresh_token = ExchangeDiscord.exchange_code(code)
+
+    if not user:
+        return HttpResponse('Error with DiscordAuth retry or contact')
 
     # check bdd if refresh token
     find_token_len = RefreshToken.objects.filter(id=user['id'])
     if len(find_token_len) == 0:
-        #create refreshToken
+        # create refreshToken
         RefreshToken.objects.create_token_refresh(user, refresh_token)
     else:
-        #check is equal
+        # check is equal
         DiscordVerification.check_refresh_token(user, refresh_token)
 
-    #autenticate
+    # autenticate
     discord_user = authenticate(request, user=user)
     discord_user = list(discord_user).pop()
 
-    #login
+    # login
     login(request, discord_user, backend="discordAuth.auth.DiscordAuthentificationBackend")
+    logging.info(f"{user['username']} ({user['id']}) : is connected to the Panel !")
 
-    #redirect dashboard page
+    # redirect dashboard page
     return redirect('/dashboard/')
 
 
 # change code with token
-def exchange_code(code: object) -> object:
-    data = {
-        "client_id": "1023285147681960069",
-        "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
-        "scope": "identify guild"
-    }
-    headers = {
-        'Content_Type': 'application/x-www-form-urlencoded'
-    }
-    response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
-    credentials = response.json()
+class ExchangeDiscord:
+    @staticmethod
+    def exchange_code(code: object) -> object:
+        data = {
+            "client_id": "1023285147681960069",
+            "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
+            "scope": "identify guild"
+        }
+        headers = {
+            'Content_Type': 'application/x-www-form-urlencoded'
+        }
+        response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
-    refresh_token = credentials['refresh_token']
-    access_token = credentials['access_token']
+        credentials = response.json()
 
-    responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
-        'Authorization': 'Bearer %s' % access_token
-    })
-    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
-        'Authorization': 'Bearer %s' % access_token
-    })
+        if 'error' in credentials.keys():
+            logging.warning(("Problem in exchange code => Return 404 Response !"))
+            return None, None
 
-    user = responseUser.json()
+        refresh_token = credentials['refresh_token']
+        access_token = credentials['access_token']
 
-    guilds_Json = responseGuild.json()
+        responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
+            'Authorization': 'Bearer %s' % access_token
+        })
+        responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
+            'Authorization': 'Bearer %s' % access_token
+        })
 
-    guilds = []
-    for guild in guilds_Json:
-        if guild['owner']:
-            guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
-            guilds.append(guild_dico)
+        user = responseUser.json()
 
-    user['guilds'] = guilds
+        guilds_Json = responseGuild.json()
 
-    return user, refresh_token
+        guilds = []
+        for guild in guilds_Json:
+            if guild['owner']:
+                guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
+                guilds.append(guild_dico)
 
-#change refresh token
-def exchange_refresh_token(token):
-    data = {
-        "client_id": "1023285147681960069",
-        "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
-        "grant_type": "refresh_token",
-        "refresh_token": token,
-        "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
-    }
-    headers = {
-        'Content_Type': 'application/x-www-form-urlencoded'
-    }
-    response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
+        user['guilds'] = guilds
 
-    credentials = response.json()
-    if 'error' in credentials.keys():
-        return None, token
-    refresh_token = credentials['refresh_token']
+        logging.info(f"{user['username']} ({user['id']}) : get user sucess !")
+        return user, refresh_token
 
-    access_token = credentials['access_token']
+    # change refresh token
+    @staticmethod
+    def exchange_refresh_token(token):
+        data = {
+            "client_id": "1023285147681960069",
+            "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
+            "grant_type": "refresh_token",
+            "refresh_token": token,
+            "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
+        }
+        headers = {
+            'Content_Type': 'application/x-www-form-urlencoded'
+        }
+        response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
 
-    responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
-        'Authorization': 'Bearer %s' % access_token
-    })
-    responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
-        'Authorization': 'Bearer %s' % access_token
-    })
+        credentials = response.json()
+        if 'error' in credentials.keys():
+            logging.warning(("Problem in exchange Refresh Token !"))
+            return None, token
 
-    user = responseUser.json()
+        refresh_token = credentials['refresh_token']
 
-    guilds_Json = responseGuild.json()
+        access_token = credentials['access_token']
 
-    guilds = []
-    for guild in guilds_Json:
-        if guild['owner']:
-            guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
-            guilds.append(guild_dico)
+        responseUser = requests.get('https://discord.com/api/v10/users/@me', headers={
+            'Authorization': 'Bearer %s' % access_token
+        })
+        responseGuild = requests.get('https://discord.com/api/v10/users/@me/guilds', headers={
+            'Authorization': 'Bearer %s' % access_token
+        })
 
-    user['guilds'] = guilds
+        user = responseUser.json()
 
-    find_token = get_object_or_404(RefreshToken)
-    if find_token == Http404:
-        RefreshToken.objects.create_token_refresh(user, token)
-    else:
-        if find_token.token != token:
-            print("changement effectué")
-            find_token.token = token
-            find_token.save()
+        guilds_Json = responseGuild.json()
 
-    return user, refresh_token
+        guilds = []
+        for guild in guilds_Json:
+            if guild['owner']:
+                guild_dico = {"id": guild['id'], "name": guild['name'], "icon": guild['icon'], "owner": guild['owner']}
+                guilds.append(guild_dico)
+
+        user['guilds'] = guilds
+
+        find_token = get_object_or_404(RefreshToken)
+        if find_token == Http404:
+            RefreshToken.objects.create_token_refresh(user, token)
+        else:
+            if find_token.token != token:
+                find_token.token = token
+                find_token.save()
+
+        logging.info(f"{user['username']} ({user['id']}) : refresh sucess !")
+        return user, refresh_token
+
+
+# Verif Discord ans refreshToken
+class DiscordVerification:
+
+    @staticmethod
+    def check_refresh_token(user, token):
+        find_token = get_object_or_404(RefreshToken)
+        if find_token == Http404:
+            RefreshToken.objects.create_token_refresh(user, token)
+        else:
+            if find_token.token != token:
+                find_token.token = str(token)
+                find_token.save()
+
+        return find_token
+
+    @staticmethod
+    def check_discord_user(user):
+        try:
+            discord_tag = '%s#%s' % (user['username'], user['discriminator'])
+        except:
+            discord_tag = user['discord_tag']
+        dico_user = {
+            "id": user['id'],
+            "discord_tag": discord_tag,
+            "avatar": user['avatar'],
+            "locale": user['locale'],
+            "premium_type": user['premium_type'],
+            "username": user['username'],
+            "tag": user['discriminator'],
+            "mfa_enabled": user['mfa_enabled'],
+            "guilds": user['guilds']
+        }
+
+        find_user = get_object_or_404(DiscordUser)
+
+        if find_user == Http404:
+            DiscordUser.objects.create_new_discord_user(dico_user)
+        else:
+            save_user = False
+            for field, value in dico_user.items():
+                if getattr(find_user, field) != value:
+                    save_user = True
+                    setattr(find_user, field, value)
+            if save_user:
+                find_user.save()
+
+        logging.info(f"{user['username']} ({user['id']}) : check user sucess !")
+
+        return dico_user, True
 
 
 # Admin Session
@@ -171,7 +239,8 @@ def delete_all_unexpired_sessions_for_user(user):
     ]
 
 
-#logout session
+# logout session
 def logout(request):
     delete_all_unexpired_sessions_for_user(request.user)
+
     return redirect("/admin/connexion")

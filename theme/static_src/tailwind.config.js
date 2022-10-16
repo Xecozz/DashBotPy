@@ -44,7 +44,7 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                'dashcolor': '#7A3A97',
+                display: ["group-hover"],
             },
         },
     },
