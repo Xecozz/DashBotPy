@@ -30,46 +30,43 @@
             border-color: #191919;
         }
 
-        .info {
-            width: 20px;
-            height: 20px;
-            border-radius: 100%;
-            display: flex;
-            left: -30%;
-            justify-content: center;
-            align-items: center;
-            z-index: 99;
-            border: none;
-            background: #FF0000;
-            background-size: 10px;
-            cursor: pointer;
-            outline: none;
+        @keyframes smooth {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
 
+        .cacher {
+            display: none;
+        }
+
+        .btn {
+            display: block;
+            transition-property: display;
+            transition-duration: 4s;
+            transition-delay: 2s;
         }
 
 
     </style>
     <script>
-        function afficher() {
-            document.getElementById("triggerElement").style.display = "none"
-            document.getElementById("targetElement").style.display = "block"
-        }
 
         function cacher() {
-            trigger = document.getElementById("triggerElement").style.display = "block"
-            document.getElementById("targetElement").style.display = "none"
+            document.getElementById("targetElement").classList.add("cacher")
         }
-
 
     </script>
 
 </head>
 <body class="bg-black-alt font-sans leading-normal tracking-normal">
 
-<nav id="header" class="bg-gray-900 fixed w-full z-10 shadow">
+<nav id="header" class="bg-gray-900 fixed w-full z-10">
 
 
-    <div class="w-full container mx-auto flex flex-wrap items-center mt-0 pt-3 pb-3 md:pb-6">
+    <div class="w-full container mx-auto flex flex-wrap items-center mt-0 pt-4 pb-3 md:pb-6 text-center">
 
         <div class="w-1/2 pl-2 md:pl-0">
             <a class="text-gray-100 text-base xl:text-xl no-underline hover:no-underline font-bold" href="#">
@@ -85,20 +82,16 @@
             <div class="flex relative inline-block float-right">
                 {% if not update %}
                     <div class="group">
-                        <div id="triggerElement" class=" info absolute items-center animate-pulse mt-2"
-                             onclick="afficher()">
-                            <i class="info fa-solid fa-info" style="color: white"></i>
-                        </div>
                         <div id="targetElement"
-                             class="hidden bg-red-100 border border-red-400 text-red-700 px-10 mt-1 top-1.5 text-center rounded relative"
+                             class="visible bg-red-100 border border-red-400 text-red-700 px-10 top-2 text-center rounded relative mr-4 mb-1"
                              role="alert">
-                            <strong class="font-bold">Holy smokes!</strong>
-                            <span class="block sm:inline">Something seriously bad happened.</span>
-                            <span class="absolute top-0 bottom-0 right-0 px-4">
-                        <svg onclick="cacher()" class="fill-current h-6 w-8 text-red-500" role="button"
-                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path
-                                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                        </span>
+                            <strong class="font-bold">Attention!</strong>
+                            <span class="block sm:inline">Votre panel n'a pas été mis à jour! Refresh.</span>
+                            <span class="absolute top-0 bottom-0 right-0">
+                            <svg onclick="cacher()" class=" btn fill-current h-6 w-8 text-red-500" role="button"
+                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path
+                                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                            </span>
                         </div>
                     </div>
                 {% endif %}

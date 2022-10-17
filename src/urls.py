@@ -1,31 +1,18 @@
-"""src URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from discordAuth import views
-from Dashboard.views import index, dashboard, logout_Discord_user
+from Dashboard.views import panel_manager, panel, logout_Discord_user
 
 from src import settings
+
+
 
 urlpatterns = [
     path('admin/', views.logout),
     path('admin/connexion', admin.site.urls),
-    path('dashboard/', index, name='dashboard'),
-    path('dashboard/<int:slug>/', dashboard, name='dashbaord_manage'),
+    path('panel/', panel, name='panel'),
+    path('panel/<int:slug>/', panel_manager, name='panel_manager'),
     path('logout', logout_Discord_user, name="logout"),
 
     #tailwind
