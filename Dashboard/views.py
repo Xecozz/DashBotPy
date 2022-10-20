@@ -3,11 +3,10 @@ import logging
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
+
 from discordAuth.main import check_update
 
 from discordAuth.views import get_authenticated_user, delete_all_unexpired_sessions_for_user
-
-
 
 
 
@@ -34,10 +33,6 @@ def panel(request):
     if not user:
         logging.warning('Error with check User !')
         return HttpResponseRedirect('/oauth2/login/')
-
-    #DiscordBot = Bot(int(user['id']), 1021750826018029618)
-
-    #await DiscordBot.sendMessage(1021750826856894474)
 
     return render(request, 'panel/panel.html', context={"user": user, "guilds": user['guilds'], 'update': update})
 
