@@ -72,7 +72,7 @@ def discord_login_redirect(request: HttpRequest):
     logging.info(f"{user['username']} ({user['id']}) : is connected to the Panel !")
 
     # redirect dashboard page
-    return redirect('/dashboard/')
+    return redirect('/panel/')
 
 
 # change code with token
