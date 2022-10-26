@@ -1,6 +1,7 @@
+import asyncio
 import logging
-logging.basicConfig(format='%(asctime)s - %(levelname)s - [%(pathname)s:%(lineno)d] - %(message)s', level=logging.INFO)
 
+from discord.ext import ipc
 # basic
 from django.http import HttpRequest, Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
@@ -17,6 +18,21 @@ from django.utils import timezone
 from django.contrib.sessions.models import Session
 
 from discordAuth.models import RefreshToken, DiscordUser
+
+from packages.log import CustomFormatter
+
+# logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+ch.setFormatter(CustomFormatter())
+
+logger.addHandler(ch)
+
+ipc_client = ipc.Client(secret_key="pynel")
 
 # redirect oauth2
 redirect_url_discord = "https://discord.com/api/oauth2/authorize?client_id=1023285147681960069&redirect_uri=http%3A" \
@@ -69,20 +85,27 @@ def discord_login_redirect(request: HttpRequest):
 
     # login
     login(request, discord_user, backend="discordAuth.auth.DiscordAuthentificationBackend")
-    logging.info(f"{user['username']} ({user['id']}) : is connected to the Panel !")
+
+    logger.info(f"{user['username']} ({user['id']}) : is connected to the Panel !")
+    asyncio.run(ipc_client.request("sendMessage", user=user))
 
     # redirect dashboard page
     return redirect('/panel/')
 
 
 # change code with token
+Discordid = {
+    "client_id": "1023285147681960069",
+    "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
+}
+
 
 class ExchangeDiscord:
     @staticmethod
     def exchange_code(code: object) -> object:
         data = {
-            "client_id": "1023285147681960069",
-            "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
+            "client_id": Discordid['client_id'],
+            "client_secret": Discordid['client_secret'],
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
@@ -96,7 +119,7 @@ class ExchangeDiscord:
         credentials = response.json()
 
         if 'error' in credentials.keys():
-            logging.warning(("Problem in exchange code => Return 404 Response !"))
+            logger.warning(("Problem in exchange code => Return 404 Response !"))
             return None, None
 
         refresh_token = credentials['refresh_token']
@@ -121,7 +144,7 @@ class ExchangeDiscord:
 
         user['guilds'] = guilds
 
-        logging.info(f"{user['username']} ({user['id']}) : get user sucess !")
+        logger.info(f"{user['username']} ({user['id']}) : get user sucess !")
         return user, refresh_token
 
     # change refresh token
@@ -141,7 +164,7 @@ class ExchangeDiscord:
 
         credentials = response.json()
         if 'error' in credentials.keys():
-            logging.warning(("Problem in exchange Refresh Token !"))
+            logger.warning(("Problem in exchange Refresh Token !"))
             return None, token
 
         refresh_token = credentials['refresh_token']
@@ -175,7 +198,7 @@ class ExchangeDiscord:
                 find_token.token = token
                 find_token.save()
 
-        logging.info(f"{user['username']} ({user['id']}) : refresh sucess !")
+        logger.info(f"{user['username']} ({user['id']}) : refresh sucess !")
         return user, refresh_token
 
 
@@ -212,7 +235,7 @@ class DiscordVerification:
             "guilds": user['guilds']
         }
 
-        find_user = get_object_or_404(DiscordUser)
+        find_user = get_object_or_404(DiscordUser, id=user['id'])
 
         if find_user == Http404:
             DiscordUser.objects.create_new_discord_user(dico_user)
@@ -225,7 +248,7 @@ class DiscordVerification:
             if save_user:
                 find_user.save()
 
-        logging.info(f"{user['username']} ({user['id']}) : check user sucess !")
+        logger.info(f"{user['username']} ({user['id']}) : check user sucess !")
 
         return dico_user, True
 

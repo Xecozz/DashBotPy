@@ -4,15 +4,16 @@ from datetime import datetime
 from django.contrib.auth import models
 
 
-#backend system
+# backend system
 class DiscordUserOauth2Manager(models.UserManager):
     def create_new_discord_user(self, user):
         logging.info(f"{user['username']} ({user['id']}) : Inside Discord User Manager")
         discord_tag = '%s#%s' % (user['username'], user['discriminator'])
+
         new_user = self.create(
             id=user['id'],
-            username = user['username'],
-            tag= user['discriminator'],
+            username=user['username'],
+            tag=user['discriminator'],
             avatar=user['avatar'],
             locale=user['locale'],
             premium_type=user['premium_type'],

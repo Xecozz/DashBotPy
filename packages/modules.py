@@ -33,3 +33,4 @@ def getDifference(then, now=datetime.now(), interval="secs"):
         'mins': int(mins()),
         'secs': int(secs())
     }[interval]
+
