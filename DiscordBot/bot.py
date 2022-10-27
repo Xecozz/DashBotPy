@@ -1,9 +1,13 @@
+import json
+
 import discord
 import asyncio
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
 import logging
+
+
 class CustomFormatter(logging.Formatter):
     grey = "\x1b[38;20m"
     green = "\x1b[0;32m"
@@ -62,10 +66,42 @@ class MyBot(commands.Bot):
         await self.ipc.start()
         return
 
+    # routes
     @Server.route()
-    async def sendMessage(self, data: ClientPayload):
+    async def logUserConnection(self, data: ClientPayload):
         user = data.user
         await my_bot.get_channel(1021750826856894474).send(f"{user['username']} ({user['id']}) vient de se connecter !")
+
+    @Server.route()
+    async def checkGuild(self, data: ClientPayload):
+        guildid = data.guildId
+        guild = my_bot.get_guild(guildid)
+        if guild is None:
+            return {"status": False}
+        return {"status": True}
+
+    @Server.route()
+    async def getGuildInfo(self, data: ClientPayload):
+        guildid = data.guildId
+        guild = my_bot.get_guild(guildid)
+        if guild is None:
+            return {"status": False}
+
+        online = 0
+        for member in guild.members:
+            if member.status == discord.Status.online:
+                online += 1
+
+        guildInfoDico = {
+            "status": True,
+            "name": guild.name,
+            "id": guild.id,
+            "memberCount": guild.member_count,
+            "channelCount": len(guild.channels),
+            "online": online,
+
+        }
+        return guildInfoDico
 
 
 my_bot = MyBot()
@@ -73,5 +109,3 @@ my_bot = MyBot()
 if __name__ == "__main__":
     my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GCnFcD.OWVtZo99J5D7XKi_IqNNtBwUHWDOV0Y5zSTExs")
     asyncio.run(my_bot.setup_hook())  # start the IPC Server
-
-

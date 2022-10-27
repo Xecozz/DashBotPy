@@ -3,8 +3,8 @@ import logging
 
 from discordAuth.models import RefreshToken
 from packages.log import CustomFormatter
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, redirect
 
 from discordAuth.main import check_update
 
@@ -32,6 +32,14 @@ def panel_manager(request, slug):
     if type(user) == HttpResponseRedirect:
         return redirect('/oauth2/login/')
 
+    user, update = check_update(user)
+
+    infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug)))
+    if infoGuild['status'] == False:
+        return HttpResponse("Guild not found !")
+
+    print(infoGuild)
+
     return render(request, 'panel_manager/panel_manager.html', context={'user': user})
 
 
@@ -49,7 +57,6 @@ def panel(request):
         return HttpResponseRedirect('/oauth2/login/')
 
     date = RefreshToken.objects.get(id=user['id']).last_date
-    print(date)
 
     return render(request, 'panel/panel.html',
                   context={"user": user, "guilds": user['guilds'], 'update': update, 'last_date': date})

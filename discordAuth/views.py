@@ -87,7 +87,7 @@ def discord_login_redirect(request: HttpRequest):
     login(request, discord_user, backend="discordAuth.auth.DiscordAuthentificationBackend")
 
     logger.info(f"{user['username']} ({user['id']}) : is connected to the Panel !")
-    asyncio.run(ipc_client.request("sendMessage", user=user))
+    asyncio.run(ipc_client.request("logUserConnection", user=user))
 
     # redirect dashboard page
     return redirect('/panel/')
