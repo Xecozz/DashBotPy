@@ -1,8 +1,8 @@
 import asyncio
-import logging
 
 from discordAuth.models import RefreshToken
-from packages.log import CustomFormatter
+from packages.log import LogInit
+
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 
@@ -12,21 +12,12 @@ from discordAuth.views import get_authenticated_user, delete_all_unexpired_sessi
 from discord.ext import ipc
 
 # logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-
-ch.setFormatter(CustomFormatter())
-
-logger.addHandler(ch)
+logger = LogInit("Dashboard.views").logger
 
 ipc_client = ipc.Client(secret_key="pynel")
 
 
-def panel_manager(request, slug):
-    # check if user is auth
+def basicCheck(request):
     user = get_authenticated_user(request)
 
     if type(user) == HttpResponseRedirect:
@@ -34,32 +25,71 @@ def panel_manager(request, slug):
 
     user, update = check_update(user)
 
-    infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug)))
-    if infoGuild['status'] == False:
-        return HttpResponse("Guild not found !")
-
-    print(infoGuild)
-
-    return render(request, 'panel_manager/panel_manager.html', context={'user': user})
+    return user, update
 
 
+# index page
+def index(request):
+    return HttpResponse('Index')
+
+
+# panel
 def panel(request):
-    user = get_authenticated_user(request)
-
-    if type(user) == HttpResponseRedirect:
-        logger.warning('User is not authentificated')
-        return redirect('/oauth2/login/')
-
-    user, update = check_update(user)
+    user, update = basicCheck(request)
 
     if not user:
-        logger.warning('Error with check User !')
-        return HttpResponseRedirect('/oauth2/login/')
+        return update
 
     date = RefreshToken.objects.get(id=user['id']).last_date
 
     return render(request, 'panel/panel.html',
                   context={"user": user, "guilds": user['guilds'], 'update': update, 'last_date': date})
+
+
+# acueil page Manage
+def accueil(request, slug):
+    # check if user is auth
+    user, update = basicCheck(request)
+
+    if not user:
+        return update
+
+    infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
+    if not infoGuild['status']:
+        return HttpResponse(infoGuild['message'])
+
+    return render(request, 'panel_manager/accueil.html',
+                  context={'infoGuild': infoGuild, 'slug': slug, 'update': update})
+
+
+# manage page Manage
+def manage_members(request, slug):
+    user, update = basicCheck(request)
+
+    if not user:
+        return update
+
+    infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
+    if not infoGuild['status']:
+        return HttpResponse(infoGuild['message'])
+
+    return render(request, 'panel_manager/manage_members.html',
+                  context={'slug': slug, 'update': update, 'infoGuild': infoGuild})
+
+
+# logs page Manage
+def logs(request, slug):
+    user, update = basicCheck(request)
+
+    if not user:
+        return update
+
+    infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
+    if not infoGuild['status']:
+        return HttpResponse(infoGuild['message'])
+
+    return render(request, 'panel_manager/logs.html',
+                  context={'infoGuild': infoGuild, 'slug': slug, 'update': update, })
 
 
 # logout page

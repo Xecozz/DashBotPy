@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from discord.ext import ipc
 # basic
@@ -19,18 +18,11 @@ from django.contrib.sessions.models import Session
 
 from discordAuth.models import RefreshToken, DiscordUser
 
-from packages.log import CustomFormatter
+from packages.log import  LogInit
 
 # logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = LogInit("discordAuth.views").logger
 
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-
-ch.setFormatter(CustomFormatter())
-
-logger.addHandler(ch)
 
 ipc_client = ipc.Client(secret_key="pynel")
 
@@ -164,7 +156,7 @@ class ExchangeDiscord:
 
         credentials = response.json()
         if 'error' in credentials.keys():
-            logger.warning(("Problem in exchange Refresh Token !"))
+            logger.warning(("Problem in exchange Refresh Token !" + str(credentials)))
             return None, token
 
         refresh_token = credentials['refresh_token']

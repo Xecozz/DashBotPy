@@ -1,25 +1,16 @@
-import logging
 from datetime import datetime
 
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
 from discordAuth.models import RefreshToken
-from packages.log import CustomFormatter
+from packages.log import LogInit
 from packages.modules import getDifference
 from .views import ExchangeDiscord
 from discordAuth.views import DiscordVerification
 
 # logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-
-ch.setFormatter(CustomFormatter())
-
-logger.addHandler(ch)
+logger = LogInit("discordAuth.main").logger
 
 
 # check refreshToken and discord User in db
@@ -42,6 +33,9 @@ def check_update(user):
             DiscordVerification.check_refresh_token(user, refresh_token)
             user = new_user
 
+        if not user:
+            logger.warning('Error with check User !')
+            return None, HttpResponseRedirect('/oauth2/login/')
         return DiscordVerification.check_discord_user(user)
 
     logger.warning(f"{user['username']} ({user['id']}) NOT check Update !!")

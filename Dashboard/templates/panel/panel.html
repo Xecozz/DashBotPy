@@ -36,7 +36,7 @@
                             </div>
                             <div class="flex-1 text-center md:text-center">
                                 <h5 class="font-bold uppercase text-gray-400 mb-2">{{ guild.name }}</h5>
-                                <a href="/panel/{{ guild.id }}">
+                                <a href="/panel_manager/{{ guild.id }}">
                                     <button
                                             class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full ">
                                         Manage
@@ -58,17 +58,17 @@
 
             <div class="w-full p-3">
                 <!--Table Card-->
-                <div class="bg-gray-900 border border-gray-800 rounded shadow ">
+                <div class="bg-gray-900 border border-gray-800 rounded shadow mx-auto text-xs sm:text-sm">
                     <div class="border-b border-gray-800 p-3">
-                        <div class=" w-full container flex flex-wrap mx-auto">
+                        <div class=" w-full container flex flex-wrap content-center">
                             <div class="w-1/2">
-                                <h5 class="font-bold uppercase text-white"><i class="fa-solid fa-circle-info mr-3"
+                                <h5 class="font-bold uppercase text-white md:text-lg text-left"><i class="fa-solid fa-circle-info mr-3"
                                                                               style="color:white"></i>Vos informations
                                 </h5>
                             </div>
                             <div class="w-1/2">
                                     {% if last_date is not None %}
-                                        <h3 class="font-bold uppercase text-white float-right">Dernière connexion
+                                        <h3 class="font-bold uppercase text-white float-right md:text-base text-left"><i class="fa-solid fa-right-to-bracket mr-3" style="color: white"></i>Dernière connexion
                                             : {{ last_date }}</h3>
                                     {% endif %}
 

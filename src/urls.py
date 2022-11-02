@@ -2,7 +2,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from discordAuth import views
-from Dashboard.views import panel_manager, panel, logout_Discord_user
+from Dashboard.views import accueil, panel, logout_Discord_user, manage_members, logs, index
 
 from src import settings
 
@@ -11,8 +11,14 @@ from src import settings
 urlpatterns = [
     path('admin/', views.logout),
     path('admin/connexion', admin.site.urls),
+
+    path('', index, name='index'),
     path('panel/', panel, name='panel'),
-    path('panel/<int:slug>/', panel_manager, name='panel_manager'),
+
+    path('panel_manager/<int:slug>/', accueil, name='panel_manager_accueil'),
+    path('panel_manager/manage_members/<int:slug>/', manage_members, name='panel_manager_manage_members'),
+    path('panel_manager/logs/<int:slug>/', logs, name='panel_manager_logs'),
+
     path('logout', logout_Discord_user, name="logout"),
 
     #tailwind

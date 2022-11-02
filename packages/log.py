@@ -24,3 +24,16 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
+
+class LogInit():
+    def __init__(self, name="pynel"):
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.INFO)
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+
+        ch.setFormatter(CustomFormatter())
+
+        self.logger.addHandler(ch)
+

@@ -16,6 +16,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"
             integrity="sha256-XF29CBwU1MWLaGEnsELogU6Y6rcc5nCkhhx89nFMIDQ=" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/4338b2c7dc.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org@1.8.2"
+            integrity="sha384-+8ISc/waZcRdXCLxVgbsLzay31nCdyZXQxnsUy++HJzJliTzxKWr0m1cIEMyUzQu"
+            crossorigin="anonymous"></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/media/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/media/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/media/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
 
     <style>
         .bg-black-alt {
@@ -61,129 +68,154 @@
     </script>
 
 </head>
+
 <body class="bg-black-alt font-sans leading-normal tracking-normal">
+    <div id="container">
 
-<nav id="header" class="bg-gray-900 fixed w-full z-10">
+    <nav id="header" class="bg-gray-900 fixed w-full z-10">
 
 
-    <div class="w-full container mx-auto flex flex-wrap items-center mt-0 pt-4 pb-3 md:pb-6 text-center">
+        <div class="w-full container mx-auto flex flex-wrap items-center mt-0 pt-4 pb-3 md:pb-3 text-center">
 
-        <div class="w-1/2 pl-2 md:pl-0">
-            <a class="text-gray-100 text-base xl:text-xl no-underline hover:no-underline font-bold" href="#">
+            <div class="w-1/2 pl-2 md:pl-0">
+                <a class="text-gray-100 text-base xl:text-xl no-underline hover:no-underline font-bold"
+                   href="{% url 'index' %}">
 
-                <div class="flex items-stretch">
-                    <img class="text-blue-400 px-2 pr-2 w-11" src="/media/logo3-modified.png" alt="Logo">
-                    <div><span class="text-purple-600">P⅄</span>nel</div>
+                    <div class="flex items-stretch">
+                        <img class="text-blue-400 px-2 pr-2 w-11" src="/media/logo3-modified.png" alt="Logo">
+                        <div><span class="text-purple-600">P⅄</span>nel</div>
 
-                </div>
-            </a>
-        </div>
-        <div class="w-1/2 pr-0">
-            <div class="flex relative inline-block float-right">
-                {% if not update %}
-                    <div class="group">
-                        <div id="targetElement"
-                             class="visible bg-red-100 border border-red-400 text-red-700 px-10 top-2 text-center rounded relative mr-4 mb-1"
-                             role="alert">
-                            <strong class="font-bold">Attention!</strong>
-                            <span class="block sm:inline">Votre panel n'a pas été mis à jour! Refresh.</span>
-                            <span class="absolute top-0 bottom-0 right-0 cursor-pointer">
+                    </div>
+                </a>
+            </div>
+            <div class="w-1/2 pr-0">
+                <div class="flex relative inline-block float-right">
+                    {% if not update %}
+                        <div class="group text-sm sm:invisible">
+                            <div id="targetElement"
+                                 class="visible sm:invisible bg-red-100 border border-red-400 text-red-700 px-10 top-2 text-center rounded relative mr-6 mb-1"
+                                 role="alert">
+                                <strong class="font-bold">Attention!</strong>
+                                <span class="block sm:inline">Votre panel n'a pas été mis à jour!</span>
+                                <span class="absolute top-0 bottom-0 right-0 cursor-pointer">
                             <svg onclick="cacher()" class=" btn fill-current h-6 w-8 text-red-500"
                                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path
                                     d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                             </span>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="relative text-sm text-gray-100">
+                        <button id="userButton" class="flex items-center focus:outline-none mr-3">
+                            {% if user.avatar == None %}
+                                <img class="w-8 h-8 rounded-full mr-4"
+                                     src="https://cdn.discordapp.com/embed/avatars/4.png"
+                                     alt="Avatar of User">
+                            {% else %}
+                                <img class="w-8 h-8 rounded-full mr-4"
+                                     src="https://cdn.discordapp.com/avatars/{{ user.id }}/{{ user.avatar }}"
+                                     alt="Avatar of User">
+                            {% endif %}
+
+                            <span class="hidden md:inline-block text-gray-100">Hi, {{ user.username }}</span>
+                            <svg class="pl-2 h-2 fill-current text-gray-100" version="1.1"
+                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 129 129"
+                                 xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 129 129">
+                                <g>
+                                    <path d="m121.3,34.6c-1.6-1.6-4.2-1.6-5.8,0l-51,51.1-51.1-51.1c-1.6-1.6-4.2-1.6-5.8,0-1.6,1.6-1.6,4.2 0,5.8l53.9,53.9c0.8,0.8 1.8,1.2 2.9,1.2 1,0 2.1-0.4 2.9-1.2l53.9-53.9c1.7-1.6 1.7-4.2 0.1-5.8z"/>
+                                </g>
+                            </svg>
+                        </button>
+                        <div id="userMenu"
+                             class="bg-gray-900 rounded shadow-md mt-2 absolute mt-12 top-0 right-0 min-w-full overflow-auto z-30 invisible">
+                            <ul class="list-reset">
+                                <li><a href="#"
+                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">My
+                                    account</a></li>
+                                <li><a href="#"
+                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Notifications</a>
+                                </li>
+                                <li>
+                                    <hr class="border-t mx-2 border-gray-400">
+                                </li>
+                                <li><a href="{% url 'logout' %}"
+                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Logout</a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                {% endif %}
-                <div class="relative text-sm text-gray-100">
-                    <button id="userButton" class="flex items-center focus:outline-none mr-3">
-                        {% if user.avatar == None %}
-                            <img class="w-8 h-8 rounded-full mr-4" src="https://cdn.discordapp.com/embed/avatars/4.png"
-                                 alt="Avatar of User">
-                        {% else %}
-                            <img class="w-8 h-8 rounded-full mr-4"
-                                 src="https://cdn.discordapp.com/avatars/{{ user.id }}/{{ user.avatar }}"
-                                 alt="Avatar of User">
-                        {% endif %}
 
-                        <span class="hidden md:inline-block text-gray-100">Hi, {{ user.username }}</span>
-                        <svg class="pl-2 h-2 fill-current text-gray-100" version="1.1"
-                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 129 129"
-                             xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 129 129">
-                            <g>
-                                <path d="m121.3,34.6c-1.6-1.6-4.2-1.6-5.8,0l-51,51.1-51.1-51.1c-1.6-1.6-4.2-1.6-5.8,0-1.6,1.6-1.6,4.2 0,5.8l53.9,53.9c0.8,0.8 1.8,1.2 2.9,1.2 1,0 2.1-0.4 2.9-1.2l53.9-53.9c1.7-1.6 1.7-4.2 0.1-5.8z"/>
-                            </g>
-                        </svg>
-                    </button>
-                    <div id="userMenu"
-                         class="bg-gray-900 rounded shadow-md mt-2 absolute mt-12 top-0 right-0 min-w-full overflow-auto z-30 invisible">
-                        <ul class="list-reset">
-                            <li><a href="#"
-                                   class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">My
-                                account</a></li>
-                            <li><a href="#"
-                                   class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Notifications</a>
+                    {% block menu %}
+
+                    {% endblock %}
+                </div>
+
+            </div>
+
+            {% block nav %}
+
+            {% endblock %}
+        </div>
+    </nav>
+
+
+    {% block content %}
+
+    {% endblock %}
+
+
+    <footer class="bg-gray-900 border-t border-gray-400 shadow">
+        <div class="container max-w-md mx-auto flex py-8">
+
+            <div class="w-full mx-auto flex flex-wrap">
+                <div class="flex w-full md:w-1/2 ">
+                    <div class="px-8">
+
+                        <h3 class="font-bold font-bold text-gray-100"><i class="fa-solid fa-question"
+                                                                         style="color: white"></i> A propos</h3>
+                        <p class="py-4 text-gray-600 text-sm text-left">
+                            <strong>Pynel</strong> est un projet actuellement en <strong>Beta</strong> et à comme but de
+                            proposer un panel de gestion de serveurs Discord.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex w-full md:w-1/2">
+                    <div class="px-8">
+                        <h3 class="font-bold font-bold text-gray-100"><i class="fa-solid fa-link "
+                                                                         style="color: white"></i> Liens</h3>
+                        <ul class="list-reset items-center text-sm pt-3">
+                            <li>
+                                <i class="fa-brands fa-github" style="color: white"></i>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
+
+                                   href="https://github.com/Xecozz" target="_blank"> Github</a>
                             </li>
                             <li>
-                                <hr class="border-t mx-2 border-gray-400">
+                                <i class="fa-brands fa-github-alt" style="color: white"></i>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
+                                   href="https://github.com/Xecozz/DashBotPy" target="_blank"> Projet</a>
                             </li>
-                            <li><a href="{% url 'logout' %}"
-                                   class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Logout</a>
+                            <li>
+                                <i class="fa-solid fa-bug" style="color: white"></i>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
+                                   href="https://docs.google.com/forms/d/e/1FAIpQLSf70S4dfNC7_lCOGu3BtPWmqqogKGaV80PmrkBUjVeX-H3coA/viewform?usp=sf_link"
+                                   target="_blank"> Report</a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
-</nav>
-
-
-{% block content %}
-
-{% endblock %}
-
-<footer class="bg-gray-900 border-t border-gray-400 shadow">
-    <div class="container max-w-md mx-auto flex py-8">
-
-        <div class="w-full mx-auto flex flex-wrap">
-            <div class="flex w-full md:w-1/2 ">
-                <div class="px-8">
-                    <h3 class="font-bold font-bold text-gray-100">About</h3>
-                    <p class="py-4 text-gray-600 text-sm text-left">
-                        <strong>Pynel</strong> est un projet actuellement en <strong>Beta</strong> comme but de proposer un panel de gestion de serveur Discord.
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex w-full md:w-1/2">
-                <div class="px-8">
-                    <h3 class="font-bold font-bold text-gray-100">Social</h3>
-                    <ul class="list-reset items-center text-sm pt-3">
-                        <li>
-                            <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
-                               href="https://github.com/Xecozz" target="_blank">Github</a>
-                        </li>
-                        <li>
-                            <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
-                               href="https://github.com/Xecozz/DashBotPy" target="_blank">Project</a>
-                        </li>
-                        <li>
-                            <a class="inline-block text-gray-600 no-underline hover:text-gray-100 hover:text-underline py-1"
-                               href="https://docs.google.com/forms/d/e/1FAIpQLSf70S4dfNC7_lCOGu3BtPWmqqogKGaV80PmrkBUjVeX-H3coA/viewform?usp=sf_link" target="_blank">Report /Suggestion /Remarque</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
         </div>
 
 
-    </div>
-</footer>
-
+    </footer>
+</div>
+</body>
 
 <script>
+
+
     /*Toggle dropdown list*/
     /*https://gist.github.com/slavapas/593e8e50cf4cc16ac972afcbad4f70c8*/
 
@@ -196,7 +228,7 @@
     document.onclick = check;
 
     function check(e) {
-        var target = (e && e.target);
+        var target = (e && e.target) || (event && event.srcElement);
 
         //User Menu
         if (!checkParent(target, userMenuDiv)) {
@@ -211,6 +243,22 @@
             } else {
                 // click both outside link and outside menu, hide menu
                 userMenuDiv.classList.add("invisible");
+            }
+        }
+
+        //Nav Menu
+        if (!checkParent(target, navMenuDiv)) {
+            // click NOT on the menu
+            if (checkParent(target, navMenu)) {
+                // click on the link
+                if (navMenuDiv.classList.contains("hidden")) {
+                    navMenuDiv.classList.remove("hidden");
+                } else {
+                    navMenuDiv.classList.add("hidden");
+                }
+            } else {
+                // click both outside link and outside menu, hide menu
+                navMenuDiv.classList.add("hidden");
             }
         }
 

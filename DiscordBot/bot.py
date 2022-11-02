@@ -31,7 +31,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-logger = logging.getLogger("DiscordBot")
+logger = logging.getLogger("DiscordBot.bot")
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
@@ -82,26 +82,41 @@ class MyBot(commands.Bot):
 
     @Server.route()
     async def getGuildInfo(self, data: ClientPayload):
-        guildid = data.guildId
-        guild = my_bot.get_guild(guildid)
-        if guild is None:
-            return {"status": False}
+        try:
+            userid = data.userId
+            guildid = data.guildId
 
-        online = 0
-        for member in guild.members:
-            if member.status == discord.Status.online:
-                online += 1
+            guild = my_bot.get_guild(guildid)
+            if guild is None:
+                return {"status": False, "message": "Guild not found !"}
+            if guild.owner.id != userid:
+                return {"status": False, "message": "You are not the owner of this guild !" + f"{guild.owner.id} != {userid}"}
 
-        guildInfoDico = {
-            "status": True,
-            "name": guild.name,
-            "id": guild.id,
-            "memberCount": guild.member_count,
-            "channelCount": len(guild.channels),
-            "online": online,
+            online = 0
+            bots = 0
 
-        }
-        return guildInfoDico
+            for member in guild.members:
+                if member.status == discord.Status.online:
+                    online += 1
+
+                if member.bot:
+                    bots += 1
+
+
+            guildInfoDico = {
+                "status": True,
+                "name": guild.name,
+                "id": guild.id,
+                "memberCount": guild.member_count,
+                "channelCount": len(guild.channels),
+                "online": online,
+                "bots": bots,
+
+            }
+            return {"status": True, "guildInfo": guildInfoDico}
+
+        except:
+            return {"status": False, "message": "Une erreur est survenue. (Slug ERROR)"}
 
 
 my_bot = MyBot()
