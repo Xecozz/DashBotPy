@@ -56,11 +56,10 @@
         <div class="flex flex-row flex-wrap flex-grow mt-2">
 
 
-            <div class="w-full p-3">
-                <!--Table Card-->
+            <div class="w-full p-3" id="accountInfo">
                 <div class="bg-gray-900 border border-gray-800 rounded shadow mx-auto text-xs sm:text-sm">
                     <div class="border-b border-gray-800 p-3">
-                        <div class=" w-full container flex flex-wrap content-center">
+                        <div class="flex items-stretch items-center">
                             <div class="w-1/2">
                                 <h5 class="font-bold uppercase text-white md:text-lg text-left"><i class="fa-solid fa-circle-info mr-3"
                                                                               style="color:white"></i>Vos informations
@@ -68,7 +67,7 @@
                             </div>
                             <div class="w-1/2">
                                     {% if last_date is not None %}
-                                        <h3 class="font-bold uppercase text-white float-right md:text-base text-left"><i class="fa-solid fa-right-to-bracket mr-3" style="color: white"></i>Dernière connexion
+                                        <h3 class="font-bold uppercase text-white float-right md:text-base text-right"><i class="fa-solid fa-right-to-bracket mr-3" style="color: white"></i>Dernière connexion
                                             : {{ last_date }}</h3>
                                     {% endif %}
 
@@ -76,7 +75,7 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <table class="w-full p-5 text-gray-600">
+                        <table class="w-full p-5 text-gray-600 text-base">
                             <thead>
                             <tr>
 

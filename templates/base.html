@@ -22,7 +22,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/media/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/media/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/media/favicon/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
 
     <style>
         .bg-black-alt {
@@ -129,11 +128,10 @@
                         <div id="userMenu"
                              class="bg-gray-900 rounded shadow-md mt-2 absolute mt-12 top-0 right-0 min-w-full overflow-auto z-30 invisible">
                             <ul class="list-reset">
-                                <li><a href="#"
-                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">My
-                                    account</a></li>
-                                <li><a href="#"
-                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Notifications</a>
+                                <li><a href="{% url 'index' %}"
+                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Page d'accueil</a></li>
+                                <li><a href="{% url 'panel' %}#accountInfo"
+                                       class="px-4 py-2 block text-gray-100 hover:bg-gray-800 no-underline hover:no-underline">Mes informations</a>
                                 </li>
                                 <li>
                                     <hr class="border-t mx-2 border-gray-400">

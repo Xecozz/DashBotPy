@@ -23,9 +23,7 @@ def basicCheck(request):
     if type(user) == HttpResponseRedirect:
         return redirect('/oauth2/login/')
 
-    user, update = check_update(user)
-
-    return user, update
+    return user
 
 
 # index page
@@ -35,7 +33,9 @@ def index(request):
 
 # panel
 def panel(request):
-    user, update = basicCheck(request)
+    user = basicCheck(request)
+
+    user, update = check_update(user)
 
     if not user:
         return update
@@ -43,53 +43,46 @@ def panel(request):
     date = RefreshToken.objects.get(id=user['id']).last_date
 
     return render(request, 'panel/panel.html',
-                  context={"user": user, "guilds": user['guilds'], 'update': update, 'last_date': date})
+                  context={'user': user, 'guilds': user['guilds'], 'update': update, 'last_date': date})
 
 
 # acueil page Manage
 def accueil(request, slug):
     # check if user is auth
-    user, update = basicCheck(request)
-
-    if not user:
-        return update
+    user = basicCheck(request)
 
     infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not infoGuild['status']:
         return HttpResponse(infoGuild['message'])
 
+    print(infoGuild)
+
     return render(request, 'panel_manager/accueil.html',
-                  context={'infoGuild': infoGuild, 'slug': slug, 'update': update})
+                  context={'guild': infoGuild['guildInfo'], 'slug': slug})
 
 
 # manage page Manage
 def manage_members(request, slug):
-    user, update = basicCheck(request)
-
-    if not user:
-        return update
+    user = basicCheck(request)
 
     infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not infoGuild['status']:
         return HttpResponse(infoGuild['message'])
 
     return render(request, 'panel_manager/manage_members.html',
-                  context={'slug': slug, 'update': update, 'infoGuild': infoGuild})
+                  context={'slug': slug, 'infoGuild': infoGuild})
 
 
 # logs page Manage
 def logs(request, slug):
-    user, update = basicCheck(request)
-
-    if not user:
-        return update
+    user = basicCheck(request)
 
     infoGuild = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not infoGuild['status']:
         return HttpResponse(infoGuild['message'])
 
     return render(request, 'panel_manager/logs.html',
-                  context={'infoGuild': infoGuild, 'slug': slug, 'update': update, })
+                  context={'infoGuild': infoGuild, 'slug': slug, })
 
 
 # logout page

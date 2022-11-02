@@ -90,7 +90,8 @@ class MyBot(commands.Bot):
             if guild is None:
                 return {"status": False, "message": "Guild not found !"}
             if guild.owner.id != userid:
-                return {"status": False, "message": "You are not the owner of this guild !" + f"{guild.owner.id} != {userid}"}
+                return {"status": False,
+                        "message": "You are not the owner of this guild !" + f"{guild.owner.id} != {userid}"}
 
             online = 0
             bots = 0
@@ -102,6 +103,8 @@ class MyBot(commands.Bot):
                 if member.bot:
                     bots += 1
 
+            icon = str(guild.icon) if guild.icon is not None else None
+            description = guild.description if guild.description is not None else None
 
             guildInfoDico = {
                 "status": True,
@@ -111,8 +114,15 @@ class MyBot(commands.Bot):
                 "channelCount": len(guild.channels),
                 "online": online,
                 "bots": bots,
+                "icon": icon,
+                "description": description,
+                "guild_created_at": guild.created_at.strftime("%d/%m/%Y %H:%M:%S"),
+                "roles_count": len(guild.roles),
+                "premium_tier": guild.premium_tier,
+                "channels_count": len(guild.channels),
 
             }
+
             return {"status": True, "guildInfo": guildInfoDico}
 
         except:
