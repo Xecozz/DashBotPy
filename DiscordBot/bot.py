@@ -1,12 +1,10 @@
-import json
-
 import discord
 import asyncio
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
 import logging
-
+import sqlite3
 
 class CustomFormatter(logging.Formatter):
     grey = "\x1b[38;20m"
@@ -38,6 +36,18 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(CustomFormatter())
 logger.addHandler(ch)
 
+
+
+db = sqlite3.connect("../db.sqlite3")
+logger.info("Database connected")
+
+# Info Server DB
+DiscordBot_BotChannel = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_BotChannel (GUILDID INT PRIMARY KEY NOT NULL, LOGS_CH INT, ANNONCE_CH INT, BIENVENUE_CH INT, BIENVENUE_FIELD TEXT )")
+
+#Members Managers DB
+DiscordBot_ManageMembers_Bans = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Bans (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL , REASON TEXT, DATE DATETIME  NOT NULL, MODERATOR INT  NOT NULL )")
+DiscordBot_ManageMembers_Warns = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Warns (GUILDID INT PRIMARY KEY NOT NULL, USERID INT, WARNID INT  NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
+DiscordBot_ManageMembers_Kicks = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Kicks (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL, KICKID INT NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
 
 class MyBot(commands.Bot):
     def __init__(self) -> None:
@@ -103,6 +113,11 @@ class MyBot(commands.Bot):
                 if member.bot:
                     bots += 1
 
+            channelNames = []
+            for channel in guild.channels:
+                if channel.type == discord.ChannelType.text:
+                    channelNames.append({"name": channel.name, "id": channel.id})
+
             icon = str(guild.icon) if guild.icon is not None else None
             description = guild.description if guild.description is not None else None
 
@@ -120,6 +135,7 @@ class MyBot(commands.Bot):
                 "roles_count": len(guild.roles),
                 "premium_tier": guild.premium_tier,
                 "channels_count": len(guild.channels),
+                "channels_names": channelNames,
 
             }
 

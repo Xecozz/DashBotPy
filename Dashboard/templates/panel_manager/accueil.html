@@ -259,24 +259,17 @@
                             <h5 class="font-bold uppercase text-gray-600">Annonce</h5>
                         </div>
                         <div class="p-5">
-                            <canvas id="chartjs-0" class="chartjs" width="undefined" height="undefined"></canvas>
-                            <script>
-                                new Chart(document.getElementById("chartjs-0"), {
-                                    "type": "line",
-                                    "data": {
-                                        "labels": ["January", "February", "March", "April", "May", "June", "July"],
-                                        "datasets": [{
-                                            "label": "Views",
-                                            "data": [65, 59, 80, 81, 56, 55, 40],
-                                            "fill": false,
-                                            "borderColor": "rgb(75, 192, 192)",
-                                            "lineTension": 0.1
-                                        }]
-                                    },
-                                    "options": {}
-                                });
-                            </script>
+                            <label for="small" class="block mb-2 text-sm font-medium text-gray-600">Annonce channel</label>
+                            <select id="small"
+                                    class="block p-2 mb-6 w-full text-sm text-white rounded-lg border border-gray-300 bg-gray-700 border-gray-600 placeholder-gray-400 text-white">
+                                <option selected>Choisis un channel d'annonce</option>
+                                {% for channelName in guild.channels_names %}
+
+                                    <option value="{{ channelName.id }}">{{ channelName.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
+
                     </div>
                     <!--/Graph Card-->
                 </div>
