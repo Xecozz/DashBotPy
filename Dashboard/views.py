@@ -1,10 +1,11 @@
 import asyncio
 
+from Dashboard.models import ChannelSetup
 from discordAuth.models import RefreshToken
 from packages.log import LogInit
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.shortcuts import render, redirect, get_object_or_404
 
 from discordAuth.main import check_update
 
@@ -51,15 +52,47 @@ def accueil(request, slug):
     # check if user is auth
     user = basicCheck(request)
 
+    # init
+    annonceSend = False
+    message = None
+
     data = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not data['status']:
         return HttpResponse(data['message'])
 
-    print(data)
 
+
+    #Annonce Channel
+    if request.method == "POST":
+        if request.POST.get("channel"):
+
+            logger.info(request.POST.get("channel"))
+            if request.POST.get("channel") != "None":
+                ChannelSetup.objects.update_or_create(guild_id=slug,
+                                                      defaults={'channel_annonce': request.POST.get("channel")})
+
+        if request.POST.get("message"):
+            logger.info(request.POST.get("message"))
+            AnnonceResult = asyncio.run(
+                ipc_client.request("sendAnnonceMessage", guildId=int(slug), message=request.POST.get("message")))
+            annonceSend = True
+
+            if AnnonceResult['status']:
+                logger.info(f"Annonce send !")
+                message = request.POST.get("message")
+
+    try:
+        channelAnnonce = ChannelSetup.objects.get(guild_id=slug).channel_annonce
+    except:
+        channelAnnonce = None
+
+    for i in data['guildInfo']['channels_names']:
+        if i['id'] == channelAnnonce:
+            channelAnnonce = i
 
     return render(request, 'panel_manager/accueil.html',
-                  context={'guild': data['guildInfo'], 'slug': slug})
+                  context={'guild': data['guildInfo'], 'slug': slug, 'AnnonceSend': annonceSend, "message": message,
+                           "channelAnnonce": channelAnnonce})
 
 
 # manage page Manage

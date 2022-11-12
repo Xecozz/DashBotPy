@@ -37,3 +37,6 @@ class LogInit():
 
         self.logger.addHandler(ch)
 
+if __name__ == "__main__":
+    print("This is a module, not a script")
+

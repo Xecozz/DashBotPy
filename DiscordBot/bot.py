@@ -1,53 +1,33 @@
+import sys
+import os
+
 import discord
 import asyncio
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
-import logging
 import sqlite3
 
-class CustomFormatter(logging.Formatter):
-    grey = "\x1b[38;20m"
-    green = "\x1b[0;32m"
-    yellow = "\x1b[33;20m"
-    red = "\x1b[31;20m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+from django.shortcuts import get_object_or_404
 
-    FORMATS = {
-        logging.DEBUG: grey + format + reset,
-        logging.INFO: green + format + reset,
-        logging.WARNING: yellow + format + reset,
-        logging.ERROR: red + format + reset,
-        logging.CRITICAL: bold_red + format + reset
-    }
+root_folder = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root_folder)
+from packages.log import LogInit
 
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+logger = LogInit("DiscordBot.bot").logger
 
-
-logger = logging.getLogger("DiscordBot.bot")
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(CustomFormatter())
-logger.addHandler(ch)
-
-
-
-db = sqlite3.connect("../db.sqlite3")
+db = sqlite3.connect("db.sqlite3")
 logger.info("Database connected")
 
-# Info Server DB
-DiscordBot_BotChannel = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_BotChannel (GUILDID INT PRIMARY KEY NOT NULL, LOGS_CH INT, ANNONCE_CH INT, BIENVENUE_CH INT, BIENVENUE_FIELD TEXT )")
 
-#Members Managers DB
-DiscordBot_ManageMembers_Bans = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Bans (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL , REASON TEXT, DATE DATETIME  NOT NULL, MODERATOR INT  NOT NULL )")
-DiscordBot_ManageMembers_Warns = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Warns (GUILDID INT PRIMARY KEY NOT NULL, USERID INT, WARNID INT  NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
-DiscordBot_ManageMembers_Kicks = db.execute("CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Kicks (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL, KICKID INT NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
+# Members Managers DB
+DiscordBot_ManageMembers_Bans = db.execute(
+    "CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Bans (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL , REASON TEXT, DATE DATETIME  NOT NULL, MODERATOR INT  NOT NULL )")
+DiscordBot_ManageMembers_Warns = db.execute(
+    "CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Warns (GUILDID INT PRIMARY KEY NOT NULL, USERID INT, WARNID INT  NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
+DiscordBot_ManageMembers_Kicks = db.execute(
+    "CREATE TABLE IF NOT EXISTS DiscordBot_ManageMembers_Kicks (GUILDID INT PRIMARY KEY NOT NULL, USERID INT  NOT NULL, KICKID INT NOT NULL, REASON TEXT, DATE DATETIME NOT NULL, MODERATOR INT NOT NULL )")
+
 
 class MyBot(commands.Bot):
     def __init__(self) -> None:
@@ -62,6 +42,12 @@ class MyBot(commands.Bot):
 
     async def on_ready(self):
         """Called upon the READY event"""
+        await self.wait_until_ready()
+        try:
+            synced = await self.tree.sync()
+            logger.info(f"Synced {len(synced)} commands")
+        except Exception as e:
+            logger.error(e)
         logger.info("Bot is ready.")
 
     async def on_ipc_ready(self):
@@ -89,6 +75,23 @@ class MyBot(commands.Bot):
         if guild is None:
             return {"status": False}
         return {"status": True}
+
+    @Server.route()
+    async def sendAnnonceMessage(self, data: ClientPayload):
+        message = data.message
+        guild_id = data.guildId
+        channelId = db.execute(f"SELECT channel_annonce FROM Dashboard_channelsetup WHERE guild_id = {guild_id}").fetchone()
+
+        if channelId is None:
+            system_channel = my_bot.get_guild(data.guildId).system_channel
+            await system_channel.send(f"Le channel d'annonce n'est pas configuré ! \n Annonce : {message}")
+            return {"status": True, "message": "Le channel d'annonce n'est pas configuré !"}
+        else:
+            channel = my_bot.get_channel(channelId[0])
+            if not channel:
+                return {"status": False, "error": "Channel not found"}
+            await channel.send(message)
+            return {"status": True}
 
     @Server.route()
     async def getGuildInfo(self, data: ClientPayload):
@@ -146,6 +149,12 @@ class MyBot(commands.Bot):
 
 
 my_bot = MyBot()
+
+
+@my_bot.tree.command(name="ping", description="Ping the bot")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message(f"Pong ! {interaction.user.mention}", ephemeral=True)
+
 
 if __name__ == "__main__":
     my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GCnFcD.OWVtZo99J5D7XKi_IqNNtBwUHWDOV0Y5zSTExs")
