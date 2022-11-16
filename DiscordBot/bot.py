@@ -3,6 +3,7 @@ import os
 
 import discord
 import asyncio
+import discord
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
@@ -108,6 +109,7 @@ class MyBot(commands.Bot):
 
             online = 0
             bots = 0
+
 
             for member in guild.members:
                 if member.status == discord.Status.online:

@@ -1,13 +1,14 @@
 import asyncio
 
+from Dashboard.Systems.accueil_manager import annonceSystem, logsSystem
 from Dashboard.models import ChannelSetup
 from discordAuth.models import RefreshToken
 from packages.log import LogInit
 
-from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, redirect
 
-from discordAuth.main import check_update
+from discordAuth.update_check import check_update
 
 from discordAuth.views import get_authenticated_user, delete_all_unexpired_sessions_for_user
 from discord.ext import ipc
@@ -52,47 +53,23 @@ def accueil(request, slug):
     # check if user is auth
     user = basicCheck(request)
 
-    # init
-    annonceSend = False
-    message = None
-
     data = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not data['status']:
         return HttpResponse(data['message'])
 
-
-
-    #Annonce Channel
-    if request.method == "POST":
-        if request.POST.get("channel"):
-
-            logger.info(request.POST.get("channel"))
-            if request.POST.get("channel") != "None":
-                ChannelSetup.objects.update_or_create(guild_id=slug,
-                                                      defaults={'channel_annonce': request.POST.get("channel")})
-
-        if request.POST.get("message"):
-            logger.info(request.POST.get("message"))
-            AnnonceResult = asyncio.run(
-                ipc_client.request("sendAnnonceMessage", guildId=int(slug), message=request.POST.get("message")))
-            annonceSend = True
-
-            if AnnonceResult['status']:
-                logger.info(f"Annonce send !")
-                message = request.POST.get("message")
-
-    try:
-        channelAnnonce = ChannelSetup.objects.get(guild_id=slug).channel_annonce
-    except:
-        channelAnnonce = None
+    dico_annonce = annonceSystem(request, slug)
+    dico_logs = logsSystem(request, slug)
 
     for i in data['guildInfo']['channels_names']:
-        if i['id'] == channelAnnonce:
-            channelAnnonce = i
+        # if
+        if i['id'] == dico_annonce['channelAnnonce']:
+            dico_annonce['channelAnnonce'] = i
+        elif i['id'] == dico_logs['channelLogs']:
+            dico_logs['channelLogs'] = i
 
     return render(request, 'panel_manager/accueil.html',
-                  context={'guild': data['guildInfo'], 'slug': slug, 'AnnonceSend': annonceSend, "message": message,
-                           "channelAnnonce": channelAnnonce})
+                  context={'guild': data['guildInfo'], 'slug': slug, 'dico_annonce': dico_annonce,
+                           'dico_logs': dico_logs})
 
 
 # manage page Manage

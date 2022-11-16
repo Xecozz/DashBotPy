@@ -27,7 +27,8 @@ def check_update(user):
     find_token.save()
 
     # if refresh page < 1s return
-    if diff > 1:
+    if diff > 300: # 5min
+        # refresh token
         if find_token != Http404:
             new_user, refresh_token = ExchangeDiscord.exchange_refresh_token(find_token.token)
             DiscordVerification.check_refresh_token(user, refresh_token)

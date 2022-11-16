@@ -208,36 +208,42 @@
                             <h5 class="font-bold uppercase text-gray-600">Logs</h5>
                         </div>
                         <div class="p-5">
-                            <canvas id="chartjs-7" class="chartjs" width="undefined" height="undefined"></canvas>
-                            <script>
-                                new Chart(document.getElementById("chartjs-7"), {
-                                    "type": "bar",
-                                    "data": {
-                                        "labels": ["January", "February", "March", "April"],
-                                        "datasets": [{
-                                            "label": "Page Impressions",
-                                            "data": [10, 20, 30, 40],
-                                            "borderColor": "rgb(255, 99, 132)",
-                                            "backgroundColor": "rgba(255, 99, 132, 0.2)"
-                                        }, {
-                                            "label": "Adsense Clicks",
-                                            "data": [5, 15, 10, 30],
-                                            "type": "line",
-                                            "fill": false,
-                                            "borderColor": "rgb(54, 162, 235)"
-                                        }]
-                                    },
-                                    "options": {
-                                        "scales": {
-                                            "yAxes": [{
-                                                "ticks": {
-                                                    "beginAtZero": true
-                                                }
-                                            }]
-                                        }
-                                    }
-                                });
-                            </script>
+                            <form method="post">
+                                {% csrf_token %}
+                                <label class="block mb-2 text-sm font-medium text-gray-600">
+                                    Logs channel</label>
+                                <div class="flex items-stretch mb-5 ">
+                                    <label for="channel_logs"></label><select id="channel_logs" type="text" name="channel_logs"
+                                                                         class="block p-2 w-full text-sm text-white rounded-lg border border-gray-300 bg-gray-700 border-gray-600 placeholder-gray-400 text-white">
+                                    {% if dico_logs.channelLogs == None %}
+                                        <option selected value="None">Choisis un channel d'annonce</option>
+                                        {% for channelName in guild.channels_names %}
+
+                                            <option value="{{ channelName.id }}">{{ channelName.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option selected
+                                                value="{{ dico_logs.channelLogs.id }}">{{ dico_logs.channelLogs.name }}</option>
+                                        {% for channelName in guild.channels_names %}
+                                            {% if channelName.id != dico_logs.channelLogs.id %}
+                                                <option value="{{ channelName.id }}">{{ channelName.name }}</option>
+                                            {% endif %}
+
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                    <input type="submit"
+                                           class="ml-3 text-white bg-purple-800 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center bg-purple-900 hover:bg-purple-600 focus:border-purple-800"
+                                           value="Enregistré">
+                                </div>
+                            </form>
+
+                            {% if dico_logs.channelLogsSave %}
+                                <div class="mt-5 bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3">
+                                    <p class="font-bold">Channel Logs enregistré!</p>
+                                    <p class="text-sm">Le channel de Logs a été enregistré  : {{ dico_logs.channelLogs.name  }}</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -246,62 +252,67 @@
                     <div class="bg-gray-900 border border-gray-800 rounded shadow">
                         <div class="border-b border-gray-800 p-3">
                             <h5 class="font-bold uppercase text-gray-600">Annonce</h5>
-                            <div class="p-5">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <label class="block mb-2 text-sm font-medium text-gray-600">Annonce
-                                        channel</label>
-                                    <div class="flex items-stretch mb-5 ">
-                                        <label for="channel"></label><select id="channel" type="text" name="channel"
-                                                                             class="block p-2 w-full text-sm text-white rounded-lg border border-gray-300 bg-gray-700 border-gray-600 placeholder-gray-400 text-white">
-                                        {% if channelAnnonce == None %}
-                                            <option selected value="None">Choisis un channel d'annonce</option>
-                                            {% for channelName in guild.channels_names %}
+                        </div>
+                        <div class="p-5">
+                            <form method="post">
+                                {% csrf_token %}
+                                <label class="block mb-2 text-sm font-medium text-gray-600">Annonce
+                                    channel</label>
+                                <div class="flex items-stretch mb-5 ">
+                                    <label for="channel_annonce"></label><select id="channel_annonce" type="text" name="channel_annonce"
+                                                                         class="block p-2 w-full text-sm text-white rounded-lg border border-gray-300 bg-gray-700 border-gray-600 placeholder-gray-400 text-white">
+                                    {% if dico_annonce.channelAnnonce == None %}
+                                        <option selected value="None">Choisis un channel d'annonce</option>
+                                        {% for channelName in guild.channels_names %}
 
+                                            <option value="{{ channelName.id }}">{{ channelName.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option selected
+                                                value="{{ dico_annonce.channelAnnonce.id }}">{{ dico_annonce.channelAnnonce.name }}</option>
+                                        {% for channelName in guild.channels_names %}
+                                            {% if channelName.id != dico_annonce.channelAnnonce.id %}
                                                 <option value="{{ channelName.id }}">{{ channelName.name }}</option>
-                                            {% endfor %}
-                                        {% else %}
-                                            <option selected
-                                                    value="{{ channelAnnonce.id }}">{{ channelAnnonce.name }}</option>
-                                            {% for channelName in guild.channels_names %}
-                                                {% if channelName.id != channelAnnonce %}
-                                                    <option value="{{ channelName.id }}">{{ channelName.name }}</option>
-                                                {% endif %}
+                                            {% endif %}
 
-                                            {% endfor %}
-                                        {% endif %}
-                                    </select>
-                                        <input type="submit"
-                                               class="ml-3 text-white bg-purple-800 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center bg-purple-900 hover:bg-purple-600 focus:border-purple-800"
-                                               value="Enregistré">
-                                    </div>
-                                </form>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                    <input type="submit"
+                                           class="ml-3 text-white bg-purple-800 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center bg-purple-900 hover:bg-purple-600 focus:border-purple-800"
+                                           value="Enregistré">
+                                </div>
+                            </form>
 
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <label for="message"
-                                           class="block mb-2 text-sm font-medium text-gray-600">Message</label>
-                                    <div class="flex items-stretch">
+                            <form method="post">
+                                {% csrf_token %}
+                                <label for="message_annonce"
+                                       class="block mb-2 text-sm font-medium text-gray-600">Message</label>
+                                <div class="flex items-stretch">
 
-                                    <textarea type="text" id="message" name="message"
+                                    <textarea type="text" id="message_annonce" name="message_annonce"
                                               class="resize-y bg-gray-50 border border-gray-300 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 bg-gray-700 dark:border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-purple-800"></textarea>
-                                        <input type="submit"
-                                               class="ml-3 text-white bg-purple-800 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center bg-purple-900 hover:bg-purple-600 focus:border-purple-800"
-                                               value="Envoyer">
-                                    </div>
-                                </form>
+                                    <input type="submit"
+                                           class="ml-3 text-white bg-purple-800 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center bg-purple-900 hover:bg-purple-600 focus:border-purple-800"
+                                           value="Envoyer">
+                                </div>
+                            </form>
 
-                                {% if AnnonceSend %}
-                                    <div class="mt-5 bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3">
-                                        <p class="font-bold">Annonce envoyé !</p>
-                                        <p class="text-sm">Vérifier bien que le channel d'annonce a été enregistré !</p>
-                                        <p class="mt-2">Message : {{ message }}</p>
-                                    </div>
-                                {% endif %}
-                            </div>
+                            {% if dico_annonce.channelAnnonceSave %}
+                                <div class="mt-5 bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3">
+                                    <p class="font-bold">Channel Annonce enregistré !</p>
+                                    <p class="text-sm">Le channel d'annonce a été enregistré : {{ dico_annonce.channelAnnonce.name }}</p>
+                                </div>
+                            {% endif %}
+                            {% if dico_annonce.annonceSend %}
+                                <div class="mt-5 bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3">
+                                    <p class="font-bold">Annonce envoyé !</p>
+                                    <p class="text-sm">Vérifier bien que le channel d'annonce a été enregistré !</p>
+                                    <p class="mt-2">Message : {{ dico_annonce.message }}</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
-
                 </div>
 
             </div>
