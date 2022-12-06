@@ -67,7 +67,7 @@ class MyBot(commands.Bot):
     @Server.route()
     async def logUserConnection(self, data: ClientPayload):
         user = data.user
-        await my_bot.get_channel(1021750826856894474).send(f"{user['username']} ({user['id']}) vient de se connecter !")
+        await my_bot.get_channel(1043500614442831944).send(f"{user['username']} ({user['id']}) vient de se connecter !")
 
     @Server.route()
     async def checkGuild(self, data: ClientPayload):

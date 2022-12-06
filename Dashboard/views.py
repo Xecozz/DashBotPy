@@ -19,13 +19,6 @@ logger = LogInit("Dashboard.views").logger
 ipc_client = ipc.Client(secret_key="pynel")
 
 
-def basicCheck(request):
-    user = get_authenticated_user(request)
-
-    if type(user) == HttpResponseRedirect:
-        return redirect('/oauth2/login/')
-
-    return user
 
 
 # index page
@@ -35,7 +28,10 @@ def index(request):
 
 # panel
 def panel(request):
-    user = basicCheck(request)
+    user = get_authenticated_user(request)
+
+    if type(user) == HttpResponseRedirect:
+        return redirect('/oauth2/login/')
 
     user, update = check_update(user)
 
@@ -51,7 +47,10 @@ def panel(request):
 # acueil page Manage
 def accueil(request, slug):
     # check if user is auth
-    user = basicCheck(request)
+    user = get_authenticated_user(request)
+
+    if type(user) == HttpResponseRedirect:
+        return redirect('/oauth2/login/')
 
     data = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not data['status']:
@@ -74,7 +73,10 @@ def accueil(request, slug):
 
 # manage page Manage
 def manage_members(request, slug):
-    user = basicCheck(request)
+    user = get_authenticated_user(request)
+
+    if type(user) == HttpResponseRedirect:
+        return redirect('/oauth2/login/')
 
     data = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not data['status']:
@@ -86,7 +88,11 @@ def manage_members(request, slug):
 
 # logs page Manage
 def logs(request, slug):
-    user = basicCheck(request)
+    user = get_authenticated_user(request)
+
+    if type(user) == HttpResponseRedirect:
+        return redirect('/oauth2/login/')
+
 
     data = asyncio.run(ipc_client.request("getGuildInfo", guildId=int(slug), userId=int(user['id'])))
     if not data['status']:
