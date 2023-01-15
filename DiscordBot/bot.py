@@ -1,19 +1,19 @@
 import sys
 import os
-
-import discord
 import asyncio
 import discord
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
 import sqlite3
+from pathlib import Path
+import environ
+from packages.log import LogInit
 
-from django.shortcuts import get_object_or_404
 
 root_folder = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_folder)
-from packages.log import LogInit
+
 
 logger = LogInit("DiscordBot.bot").logger
 
@@ -157,6 +157,10 @@ my_bot = MyBot()
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message(f"Pong ! {interaction.user.mention}", ephemeral=True)
 
+env = environ.Env()
+environ.Env.read_env(env_file=str(root_folder /".env"))
+
+Token = env("TOKEN")
 
 if __name__ == "__main__":
     my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GMzhH1.zmWOL1EwMDirGMYyhetr9Cd5TAVOoMi4QuBG78")
