@@ -148,7 +148,7 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
-environ.Env.read_env(env_file=str(BASE_DIR / "blog" / ".env"))
+environ.Env.read_env(env_file=str(BASE_DIR / "src" / ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG")

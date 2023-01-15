@@ -159,5 +159,5 @@ async def ping(interaction: discord.Interaction):
 
 
 if __name__ == "__main__":
-    my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GCnFcD.OWVtZo99J5D7XKi_IqNNtBwUHWDOV0Y5zSTExs")
+    my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GMzhH1.zmWOL1EwMDirGMYyhetr9Cd5TAVOoMi4QuBG78")
     asyncio.run(my_bot.setup_hook())  # start the IPC Server
