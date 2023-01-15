@@ -1,18 +1,21 @@
 import sys
 import os
 import asyncio
+from pathlib import Path
+
 import discord
 from discord.ext import commands, ipc
 from discord.ext.ipc.server import Server
 from discord.ext.ipc.objects import ClientPayload
 import sqlite3
-from pathlib import Path
 import environ
-from packages.log import LogInit
+
 
 
 root_folder = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root_folder)
+
+from packages.log import LogInit
 
 
 logger = LogInit("DiscordBot.bot").logger
@@ -157,11 +160,12 @@ my_bot = MyBot()
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message(f"Pong ! {interaction.user.mention}", ephemeral=True)
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
-environ.Env.read_env(env_file=str(root_folder /".env"))
+environ.Env.read_env(env_file=str( BASE_DIR/".env"))
 
 Token = env("TOKEN")
 
 if __name__ == "__main__":
-    my_bot.run("MTAyMzI4NTE0NzY4MTk2MDA2OQ.GMzhH1.zmWOL1EwMDirGMYyhetr9Cd5TAVOoMi4QuBG78")
+    my_bot.run(token=Token)
     asyncio.run(my_bot.setup_hook())  # start the IPC Server

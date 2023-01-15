@@ -15,7 +15,6 @@ logger = LogInit("discordAuth.main").logger
 
 # check refreshToken and discord User in db
 def check_update(user):
-    print(user)
     find_token = get_object_or_404(RefreshToken, pk=user['id'])
 
     # get dates
