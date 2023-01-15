@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from discord.ext import ipc
 # basic
@@ -21,6 +22,7 @@ from discordAuth.models import RefreshToken, DiscordUser
 
 from packages.log import  LogInit
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 # logger
 logger = LogInit("discordAuth.views").logger
 
@@ -90,7 +92,7 @@ environ.Env.read_env(env_file=str(BASE_DIR /".env"))
 
 # change code with token
 Discordid = {
-    "client_id": "env('CLIENT_ID')",
+    "client_id": env('CLIENT_ID'),
     "client_secret": env("CLIENT_SECRET"),
 }
 
