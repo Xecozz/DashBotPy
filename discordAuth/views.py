@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 # admin
 from django.utils import timezone
 from django.contrib.sessions.models import Session
+from environ import environ
 
 from discordAuth.models import RefreshToken, DiscordUser
 
@@ -84,11 +85,13 @@ def discord_login_redirect(request: HttpRequest):
     # redirect dashboard page
     return redirect('/panel/')
 
+env = environ.Env()
+environ.Env.read_env(env_file=str(BASE_DIR /".env"))
 
 # change code with token
 Discordid = {
-    "client_id": "1023285147681960069",
-    "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
+    "client_id": "env('CLIENT_ID')",
+    "client_secret": env("CLIENT_SECRET"),
 }
 
 
