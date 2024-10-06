@@ -105,8 +105,8 @@ class ExchangeDiscord:
             "client_secret": Discordid['client_secret'],
             "grant_type": "authorization_code",
             "code": code,
-            #"redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
-            "redirect_uri": "http://xecozz.pythonanywhere.com/login/redirect",
+            "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
+            #"redirect_uri": "http://xecozz.pythonanywhere.com/login/redirect",
             "scope": "identify guild"
         }
         headers = {
@@ -153,8 +153,8 @@ class ExchangeDiscord:
             "client_secret": "Sfkq7KeSw-wgNMVidIfETgsFRYB6TK4N",
             "grant_type": "refresh_token",
             "refresh_token": token,
-            #"redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
-            "redirect_uri": "http://xecozz.pythonanywhere.com/login/redirect",
+            "redirect_uri": "http://127.0.0.1:8000/oauth2/login/redirect",
+            #"redirect_uri": "http://xecozz.pythonanywhere.com/login/redirect",
         }
         headers = {
             'Content_Type': 'application/x-www-form-urlencoded'
